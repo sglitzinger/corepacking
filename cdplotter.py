@@ -73,7 +73,7 @@ def plot_chip_design(xs, ys, types, filename, rot):
 # Argument to be passed: input file name, input type
 # Possible input types are:
 # - default
-# - maxconf4ct
+# - heur4ct
 # For maxconf heuristic with four core types, core rotation must be applied
 def main():
 
@@ -82,7 +82,7 @@ def main():
 
     if input_type == "default":
         rot = False
-    elif input_type == "maxconf4ct":
+    elif input_type == "heur4ct":
         rot = True
     else:
         print("Please specify input file name and input type!")
