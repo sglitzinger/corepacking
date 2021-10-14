@@ -9,8 +9,9 @@ import matplotlib.pyplot as plt
 import matplotlib.patches as patches
 
 
-CHIPWIDTH = 9.55
-CHIPHEIGHT = 9.55
+CHIPWIDTH = 2400
+CHIPHEIGHT = 2400
+SCALING_FACTOR = 100
 
 
 class Core:
@@ -21,80 +22,68 @@ class Core:
         self.maxcols = int(CHIPWIDTH // width)
 
 
-COREINFO = {
-    "big": Core(5.0, 3.8),
-    "LITTLE": Core(2.1, 1.81),
-    "C3": Core(3.34,2.54),
-    #"C3": Core(2.54,3.34),
-    "C4": Core(8.85,6.56)
-    #"C4": Core(6.56,8.85)
+COREINFO= {
+    "big": Core(500,380),
+    "LITTLE": Core(210,181),
+    "A72": Core(583,469),
+    "Mali": Core(449,394)
 }
 
 COLOURS = {
     "big": "red",
     "LITTLE": "green",
-    "C3": "orange",
-    "C4": "blue"
+    "A72": "orange",
+    "Mali": "blue"
 }
 
 
-def plot_chip_design(xs, ys, types, filename, rot):
-    fig, ax = plt.subplots(figsize=(CHIPWIDTH,CHIPHEIGHT))
+def plot_chip_design(xs, ys, ws, hs, types, filename):
+    fig, ax = plt.subplots(figsize=(CHIPWIDTH/SCALING_FACTOR,CHIPHEIGHT/SCALING_FACTOR))
+    plt.axis("scaled")
     fig.canvas.set_window_title('Chip design for configuration ' + filename)
     current_type = types[0]
     switchwh = True
     for i in range(len(xs)):
-        if types[i] != current_type:
-            switchwh = not switchwh
-        current_type = types[i]
-        if rot and switchwh:
-            w = COREINFO[types[i]].height
-            h = COREINFO[types[i]].width
-        else:
-            w = COREINFO[types[i]].width
-            h = COREINFO[types[i]].height
         colour = COLOURS[types[i]]
         ax.add_patch(
             patches.Rectangle(
                 xy=(xs[i], ys[i]),  # point of origin.
-                width=w,
-                height=h,
+                width=ws[i],
+                height=hs[i],
                 linewidth=1,
                 edgecolor='black',
                 facecolor=colour,
                 fill=True
             )
         )
-    ax.set_xlim(0, CHIPWIDTH)
-    ax.set_ylim(0, CHIPHEIGHT)
+    ax.set_xlim(0, CHIPWIDTH/SCALING_FACTOR)
+    ax.set_ylim(0, CHIPHEIGHT/SCALING_FACTOR)
+    #plt.legend(COLOURS, bbox_to_anchor=(1.05, 1.0), loc='upper left', fontsize="large")
     plt.show()
 
 
-# Argument to be passed: input file name, input type
-# Possible input types are:
-# - default
-# - heur4ct
-# For maxconf heuristic with four core types, core rotation must be applied
+# Argument to be passed: input file name (including path)
 def main():
-
-    input_file = sys.argv[1]
-    input_type = sys.argv[2]
-
-    if input_type == "default":
-        rot = False
-    elif input_type == "heur4ct":
-        rot = True
-    else:
-        print("Please specify input file name and input type!")
+    if len(sys.argv < 2):
+        print("Please specify input file (including path)!")
         sys.exit(1)
-    chip_df = pd.read_csv(input_file, names=["x", "y", "type"])
+    else:
+        input_file = sys.argv[1]
+
+    chip_df = pd.read_csv(input_file, names=["x", "y", "w", "h", "type"])
     
     xs = chip_df["x"].tolist()
+    xs = [x/SCALING_FACTOR for x in xs]
     ys = chip_df["y"].tolist()
+    ys = [y/SCALING_FACTOR for y in ys]
+    ws = chip_df["w"].tolist()
+    ws = [w/SCALING_FACTOR for w in ws]
+    hs = chip_df["h"].tolist()
+    hs = [h/SCALING_FACTOR for h in hs]
     types = chip_df["type"].tolist()
     print(types)
 
-    plot_chip_design(xs, ys, types, input_file, rot)
+    plot_chip_design(xs, ys, ws, hs, types, input_file)
 
 
 if __name__ == "__main__":
