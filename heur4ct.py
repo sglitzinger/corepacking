@@ -13,10 +13,9 @@ from itertools import permutations
 import matplotlib.pyplot as plt
 
 
-CHIPWIDTH = 3200 #2400
-CHIPHEIGHT = 3200 #2400
+CHIPWIDTH = 2400 #3200 #2400
+CHIPHEIGHT = 2400 #3200 #2400
 CORE_ORDER = ["big", "A72", "Mali", "LITTLE"]
-PLACEMENT_ORDER = "random"
 
 
 class Core:
@@ -434,7 +433,7 @@ def get_placement_order(order, nct0, nct1, nct2):
         raise ValueError("Placement order unknown!")
     return placement_order
 
-# Arguments to be passed: input file, output file (including path), placement order
+# Arguments to be passed: output file (including path), placement order (i.e. order in which cores are to be placed), input file (optional)
 # Example: maxconf4ct.py ./input_maxconf4ct.csv ./configuration_maxconf4ct.csv
 # Format for input file:
 # - core type to fill chip with
@@ -449,11 +448,11 @@ def get_placement_order(order, nct0, nct1, nct2):
 def main():
     random.seed(1337)
     if len(sys.argv) >= 4:
-        input_file = sys.argv[1]
-        output_file = sys.argv[2]
-        PLACEMENT_ORDER = sys.argv[3]
+        output_file = sys.argv[1]
+        order = sys.argv[2]
+        input_file = sys.argv[3]
         corecounts, fillwith, placement_order = read_input(input_file)
-        placement_order = get_placement_order(PLACEMENT_ORDER, corecounts[CORE_ORDER[0]], corecounts[CORE_ORDER[1]], corecounts[CORE_ORDER[2]])
+        placement_order = get_placement_order(order, corecounts[CORE_ORDER[0]], corecounts[CORE_ORDER[1]], corecounts[CORE_ORDER[2]])
         print(placement_order)
         configs = investigate_design(corecounts, fillwith, placement_order)
         if len(configs) > 0:
@@ -476,7 +475,7 @@ def main():
     elif len(sys.argv) == 3:
         # Explore search space
         output_file = sys.argv[1]
-        PLACEMENT_ORDER = sys.argv[2]
+        order = sys.argv[2]
         maxct0 = COREINFO[CORE_ORDER[0]].maxrows * COREINFO[CORE_ORDER[0]].maxcols
         maxct1 = COREINFO[CORE_ORDER[1]].maxrows * COREINFO[CORE_ORDER[1]].maxcols
         maxct2 = COREINFO[CORE_ORDER[2]].maxrows * COREINFO[CORE_ORDER[2]].maxcols
@@ -499,7 +498,7 @@ def main():
                     fillwith = CORE_ORDER[-1]
 
                     # Retrieve placement order
-                    placement_order = get_placement_order(PLACEMENT_ORDER, i, j, k)
+                    placement_order = get_placement_order(order, i, j, k)
 
                     best_configs = investigate_design(corecounts, fillwith, placement_order)
                     if best_configs:
@@ -548,4 +547,4 @@ if __name__ == "__main__":
     main()
     end_time = time.process_time()
     with open("timemc4ct.log", 'a+') as tlog:
-       tlog.write(str(end_time - start_time) + "," + PLACEMENT_ORDER + "\n")
+       tlog.write(str(end_time - start_time) + "," + sys.argv[2] + "\n")

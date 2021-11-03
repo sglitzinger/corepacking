@@ -58,13 +58,23 @@ def plot_chip_design(xs, ys, ws, hs, types, filename):
         )
     ax.set_xlim(0, CHIPWIDTH/SCALING_FACTOR)
     ax.set_ylim(0, CHIPHEIGHT/SCALING_FACTOR)
+    plt.tick_params(
+        axis='both',
+        which='both',
+        bottom=False,
+        left=False,
+        top=False,
+        labelbottom=False,
+        labelleft=False
+    )
     #plt.legend(COLOURS, bbox_to_anchor=(1.05, 1.0), loc='upper left', fontsize="large")
+    plt.savefig("cdplot.eps", format="eps")
     plt.show()
 
 
 # Argument to be passed: input file name (including path)
 def main():
-    if len(sys.argv < 2):
+    if len(sys.argv) < 2:
         print("Please specify input file (including path)!")
         sys.exit(1)
     else:
