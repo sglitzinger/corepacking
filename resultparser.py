@@ -29,6 +29,14 @@ COREINFO= {
     "Mali": Core(449,394)
 }
 
+# Hypothetical square cores
+# COREINFO= {
+#     "big": Core(436,436),
+#     "LITTLE": Core(195,195),
+#     "A72": Core(523,523),
+#     "Mali": Core(421,421)
+# }
+
 TITLES = {
     "solutions_rectpack_maxrects_rot": "rectpack (MaxRects), rotation allowed",
     "solutions_rectpack_maxrects_norot": "rectpack (MaxRects), rotation not allowed",
@@ -46,8 +54,8 @@ TITLES = {
     "solutions_heuristic_grouped": "corner heuristic"
 }
 
-INPUT_PATH = "./results_32x32" # "./results_24x24"
-RESULTS_FILENAME = "./filenames_grouped.csv"
+INPUT_PATH = "./results_32x32" # "./results_24x24" # "./results_32x32_square" # "./results_24x24_square" 
+RESULTS_FILENAME = "./filenames_all.csv" # "./filenames_grouped.csv"
 
 # Areas for chip and all core types
 a_big = COREINFO["big"].width * COREINFO["big"].height
@@ -96,7 +104,9 @@ for i in range(len(littlecolnames)):
         querystring_all += " and "
 
 df_feas_exists = df.query(querystring_exists).copy()
+#df_feas_exists.to_csv("./feasible_solution_exists.csv", columns=["big", "A72", "Mali"], index=False)
 df_feas_all = df.query(querystring_all).copy()
+df_feas_all.to_csv("./feasible_solution_all.csv", columns=["big", "A72", "Mali"], index=False)
 print("Cases with at least one feasible solution:", len(df_feas_exists))
 print("Cases with a feasible solution in all cases:", len(df_feas_all))
 print("Number of feasible solutions for...")
@@ -158,11 +168,11 @@ print("Distances from upper bound (feasible solution for all methods):")
 for i in range(len(filenames)):
     print("{}: maximum: {}, average: {:5.2f}".format(os.path.splitext(filenames[i])[0], maxdists_all[i], sum(distances_all[i])/len(distances_all[i])))
 
-numrows = len(filenames) # int(math.ceil(len(filenames) / 2))
-numcols = 1 # 2
+numrows = 1 # len(filenames) # int(math.ceil(len(filenames) / 2))
+numcols = len(filenames) # 1 # 2
 
 #fig, axes = plt.subplots(numrows,2,sharex=True,sharey=True,figsize=(5*2,5*numrows))
-fig, axes = plt.subplots(numrows,1,sharex=True,sharey=True,figsize=(5,5*numrows))
+fig, axes = plt.subplots(numrows,numcols,sharex=True,sharey=True,figsize=(5*numcols,5*numrows))
 # for i in range(numrows):
 #     for j in range(numcols):
 #         if i*numcols+j < len(distances_exists):
@@ -172,7 +182,8 @@ fig, axes = plt.subplots(numrows,1,sharex=True,sharey=True,figsize=(5,5*numrows)
 #             axes[i][j].set_ylabel("# configurations")
 #             axes[i][j].xaxis.set_tick_params(labelbottom=True)
 #             axes[i][j].yaxis.set_tick_params(labelleft=True)
-for i in range(numrows):
+#for i in range(numrows):
+for i in range(numcols):
     #axes[i].hist(distances_exists[i], maxdists_exists[i]+2)
     print(maxdists_all[i])
     print(Counter(distances_all[i]))

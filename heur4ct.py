@@ -6,6 +6,7 @@ Computes all max. configurations of heterogeneous chip with up to four core type
 import time
 import sys
 import random
+import os
 from shapely.geometry import Polygon
 from shapely.geometry import Point
 from shapely import affinity
@@ -13,8 +14,8 @@ from itertools import permutations
 import matplotlib.pyplot as plt
 
 
-CHIPWIDTH = 2400 #3200 #2400
-CHIPHEIGHT = 2400 #3200 #2400
+CHIPWIDTH = None # 2400 # 3200 #2400
+CHIPHEIGHT = None # 2400 # 3200 #2400
 CORE_ORDER = ["big", "A72", "Mali", "LITTLE"]
 
 
@@ -35,12 +36,24 @@ class PlacedCore:
         self.t = t
 
 
-COREINFO= {
-    "big": Core(500,380),
-    "LITTLE": Core(210,181),
-    "A72": Core(583,469),
-    "Mali": Core(449,394)
-}
+COREINFO = None
+
+def set_coreinfo():
+    global COREINFO
+    COREINFO = {
+        "big": Core(500,380),
+        "LITTLE": Core(210,181),
+        "A72": Core(583,469),
+        "Mali": Core(449,394)
+    }
+
+# Hypothetical square cores
+# COREINFO= {
+#     "big": Core(436,436),
+#     "LITTLE": Core(195,195),
+#     "A72": Core(523,523),
+#     "Mali": Core(421,421)
+# }
 
 
 # Cf. https://stackoverflow.com/questions/10035752/elegant-python-code-for-integer-partitioning
@@ -447,10 +460,15 @@ def get_placement_order(order, nct0, nct1, nct2):
 # If no input file is passed, the search space is systematically explored
 def main():
     random.seed(1337)
-    if len(sys.argv) >= 4:
-        output_file = sys.argv[1]
-        order = sys.argv[2]
-        input_file = sys.argv[3]
+    output_file = sys.argv[1]
+    order = sys.argv[2]
+    global CHIPWIDTH
+    CHIPWIDTH = int(sys.argv[3]) * 100
+    global CHIPHEIGHT
+    CHIPHEIGHT = int(sys.argv[4]) * 100
+    set_coreinfo()
+    if len(sys.argv) >= 6:
+        input_file = sys.argv[5]
         corecounts, fillwith, placement_order = read_input(input_file)
         placement_order = get_placement_order(order, corecounts[CORE_ORDER[0]], corecounts[CORE_ORDER[1]], corecounts[CORE_ORDER[2]])
         print(placement_order)
@@ -472,10 +490,8 @@ def main():
                     outf.write("{},{},{},{},{}\n".format(coresx[i], coresy[i], coresw[i], coresh[i], corest[i]))
         else:
             print("No feasible configuration found for given core counts!")
-    elif len(sys.argv) == 3:
+    elif len(sys.argv) == 5:
         # Explore search space
-        output_file = sys.argv[1]
-        order = sys.argv[2]
         maxct0 = COREINFO[CORE_ORDER[0]].maxrows * COREINFO[CORE_ORDER[0]].maxcols
         maxct1 = COREINFO[CORE_ORDER[1]].maxrows * COREINFO[CORE_ORDER[1]].maxcols
         maxct2 = COREINFO[CORE_ORDER[2]].maxrows * COREINFO[CORE_ORDER[2]].maxcols
@@ -504,6 +520,19 @@ def main():
                     if best_configs:
                         # Feasible solution available
                         numct3 = len(best_configs[CORE_ORDER[-1]])
+                        coresx, coresy, coresw, coresh, corest = get_core_coords(best_configs, placement_order)
+                        fillcores = best_configs[fillwith]
+                        for fillcore in fillcores:
+                            coresx.append(fillcore.x)
+                            coresy.append(fillcore.y)
+                            coresw.append(fillcore.w)
+                            coresh.append(fillcore.h)
+                            corest.append(fillcore.t)
+                        if not os.path.isdir("/tmp/layouts_heuristic_{}".format(order)):
+                            os.mkdir("/tmp/layouts_heuristic_{}".format(order))
+                        with open("/tmp/layouts_heuristic_{}/layout_{}_{}_{}.csv".format(order, i, j, k), 'w') as outf:
+                            for m in range(len(coresx)):
+                                outf.write("{},{},{},{},{}\n".format(coresx[m], coresy[m], coresw[m], coresh[m], corest[m]))
                     else:
                         numct3 = -1
                     with open(output_file, "a") as shf:
@@ -547,4 +576,4 @@ if __name__ == "__main__":
     main()
     end_time = time.process_time()
     with open("timemc4ct.log", 'a+') as tlog:
-       tlog.write(str(end_time - start_time) + "," + sys.argv[2] + "\n")
+       tlog.write(str(end_time - start_time) + "," + sys.argv[3] + "x" + sys.argv[4] + "," + sys.argv[2] + "\n")

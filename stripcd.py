@@ -4,11 +4,12 @@ Computes max. configurations for chip design via strip packing heuristic as in W
 
 
 import sys
+import os
 import time
 
 
-CHIPWIDTH = 3200 # 2400
-CHIPHEIGHT = 3200 # 2400
+CHIPWIDTH = None # 2400 # 3200 # 2400
+CHIPHEIGHT = None # 2400 # 3200 # 2400
 CORE_ORDER = ["big", "A72", "Mali", "LITTLE"]
 EQ_THRESHOLD = 0.001
 
@@ -30,13 +31,24 @@ class Segment:
         self.rh = rh
 
 
-COREINFO= {
-    "big": Core(500,380),
-    "LITTLE": Core(210,181),
-    "A72": Core(583,469),
-    "Mali": Core(449,394)
-}
+COREINFO = None
 
+def set_coreinfo():
+    global COREINFO
+    COREINFO = {
+        "big": Core(500,380),
+        "LITTLE": Core(210,181),
+        "A72": Core(583,469),
+        "Mali": Core(449,394)
+    }
+
+# Hypothetical square cores
+# COREINFO= {
+#     "big": Core(436,436),
+#     "LITTLE": Core(195,195),
+#     "A72": Core(523,523),
+#     "Mali": Core(421,421)
+# }
 
 # Choose leftmost bottom segment
 def choose_segment(skyline):
@@ -81,6 +93,8 @@ def remove_segment(skyline, segind):
 
 
 def insert_segment(skyline, index, left, x, y, w):
+    #print("Skyline length:", len(skyline))
+    #print("Index:", index)
     if left:
         # Insert to the left of current segment
         if index == 0:
@@ -101,7 +115,7 @@ def insert_segment(skyline, index, left, x, y, w):
             inspos = index
     else:
         # Insert to the right of current segment
-        if index == len(skyline):
+        if index == len(skyline)-1:
             # Insert as last segment
             rh = float('inf')
             lh = abs(skyline[-1].y - y)
@@ -122,7 +136,7 @@ def insert_segment(skyline, index, left, x, y, w):
 def print_skyline(skyline):
     print("Skyline:")
     for segment in skyline:
-        print("{} --> {} at height {}".format(segment.x, segment.x+segment.w, segment.y))
+        print("{} --> {} at height {}, lh: {}, rh:{}".format(segment.x, segment.x+segment.w, segment.y, segment.lh, segment.rh))
 
 
 def is_equal(val1, val2):
@@ -163,6 +177,7 @@ def get_fitness_values(segment, corelist):
 
 def place_core(skyline, segind, width, height, coresx, coresy, coresw, coresh):
     segment = skyline[segind]
+    #print(segind, segment.lh, segment.rh)
     if width > segment.w:
         # Core does not fit segment
         # Should not happen, as this has been checked beforehand
@@ -179,18 +194,22 @@ def place_core(skyline, segind, width, height, coresx, coresy, coresw, coresh):
         segment.y += height
         if height == segment.rh:
             # Cannibalize segment to the right
+            #print("Cannibalize segment to the right")
             segment.w += skyline[segind+1].w
             segment.rh = skyline[segind+1].rh
             skyline.pop(segind+1)
-        else:
+        elif segind < len(skyline)-1:
+            # If not rightmost segment, update vertical segments
             segment.rh = abs(skyline[segind+1].y - segment.y)
             skyline[segind+1].lh = segment.rh
         if height == segment.lh:
             # Merge with segment to the left
+            #print("Merge with segment to the left")
             skyline[segind-1].w += segment.w
             skyline[segind-1].rh = segment.rh
             skyline.pop(segind)
-        else:
+        elif segind > 0:
+            # If not leftmost segment, update vertical segments
             segment.lh = abs(skyline[segind-1].y - segment.y)
             skyline[segind-1].rh = segment.lh
     elif is_equal(height, segment.lh):
@@ -348,9 +367,14 @@ def read_input(input_file):
 # 
 # If no arguments are passed, the search space is systematically explored
 def main():
-    if len(sys.argv) >= 3:
-        input_file = sys.argv[1]
-        output_file = sys.argv[2]
+    output_file = sys.argv[1]
+    global CHIPWIDTH
+    CHIPWIDTH = int(sys.argv[2]) * 100
+    global CHIPHEIGHT
+    CHIPHEIGHT = int(sys.argv[3]) * 100
+    set_coreinfo()
+    if len(sys.argv) >= 5:
+        input_file = sys.argv[4]
         corelist, fillwith = read_input(input_file)
         # Initialize skyline
         initial_segment = Segment(0.0,0.0,CHIPWIDTH,float('inf'),float('inf'))
@@ -364,7 +388,7 @@ def main():
         with open(output_file, "w") as cdf:
             for i in range(len(corest)):
                 cdf.write("{},{},{},{},{}\n".format(coresx[i], coresy[i], coresw[i], coresh[i], corest[i]))
-    else:
+    elif len(sys.argv) == 4:
         # Explore search space
         maxct0 = COREINFO[CORE_ORDER[0]].maxrows * COREINFO[CORE_ORDER[0]].maxcols
         maxct1 = COREINFO[CORE_ORDER[1]].maxrows * COREINFO[CORE_ORDER[1]].maxcols
@@ -394,10 +418,18 @@ def main():
                     cores_placed, coresx, coresy, coresw, coresh, corest, is_infeasible = place_cores(skyline, corelist, fillwith, True)
                     if not is_infeasible:
                         numct3 = corest.count(CORE_ORDER[-1])
+                        if not os.path.isdir("/tmp/layouts_strippacking"):
+                            os.mkdir("/tmp/layouts_strippacking")
+                        with open("/tmp/layouts_strippacking/layout_{}_{}_{}.csv".format(i, j, k), "w") as cdf:
+                            for m in range(len(corest)):
+                                cdf.write("{},{},{},{},{}\n".format(coresx[m], coresy[m], coresw[m], coresh[m], corest[m]))
                     else:
                         numct3 = -1
                     with open("/tmp/solutions_strippacking.csv", "a") as ssf:
                         ssf.write("{},{},{},{}\n".format(i,j,k,numct3))
+    else:
+        print("Please specify input/output file(s)!")
+        sys.exit(1)
 
 
 if __name__ == "__main__":
@@ -405,5 +437,5 @@ if __name__ == "__main__":
     main()
     end_time = time.process_time()
     with open("./timestrippack.log", 'a+') as tlog:
-        tlog.write(str(end_time - start_time) + "\n")
+        tlog.write(str(end_time - start_time) + "," + sys.argv[2] + "x" + sys.argv[3] + "\n")
             
