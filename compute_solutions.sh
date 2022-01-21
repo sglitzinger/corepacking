@@ -4,7 +4,7 @@ CHIPDIMS="32"
 
 for chipdim in $CHIPDIMS
 do
-    resfolder="/home/sebastian/pvrepos/chipdesign/results_${chipdim}x${chipdim}_with_layouts/"
+    resfolder="/home/sebastian/pvrepos/chipdesign/results_${chipdim}x${chipdim}/"
     mkdir $resfolder
 
     source activate rectpack

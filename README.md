@@ -1,4 +1,4 @@
-# chipdesign
+# corepacking
 Heuristic for core placement on chip
 
 # File Overview

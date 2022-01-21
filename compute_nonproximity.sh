@@ -1,7 +1,7 @@
 #!/bin/bash
 
 #ALGORITHMS="rectpack_maxrectsrot rectpack_maxrectsnorot rectpack_guillotinerot rectpack_guillotinenorot rectpack_skylinerot rectpack_skylinenorot strippacking heuristic_random heuristic_totalarea heuristic_corearea"
-ALGORITHMS="rectpack_maxrectsrot rectpack_maxrectsnorot rectpack_guillotinerot rectpack_guillotinenorot rectpack_skylinerot rectpack_skylinenorot strippacking heuristic_random"
+ALGORITHMS="heuristic_totalarea heuristic_corearea"
 
 for alg in $ALGORITHMS
 do

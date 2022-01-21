@@ -2,10 +2,6 @@
 Computes nonproximity measure for chip layouts.
 '''
 
-# auf core normalisieren
-# max/avg über paare von cores eines typs
-# max/avg über core-types
-
 
 import sys
 import os
