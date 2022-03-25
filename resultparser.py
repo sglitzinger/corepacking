@@ -10,8 +10,8 @@ import matplotlib.pyplot as plt
 from collections import Counter
 
 
-CHIPWIDTH = 3200 #2400
-CHIPHEIGHT = 3200 #2400
+CHIPWIDTH = 1600 # 3200 #2400
+CHIPHEIGHT = 1600 # 3200 #2400
 
 
 class Core:
@@ -54,8 +54,8 @@ TITLES = {
     "solutions_heuristic_grouped": "corner heuristic"
 }
 
-INPUT_PATH = "./results_32x32" # "./results_24x24" # "./results_32x32_square" # "./results_24x24_square" 
-RESULTS_FILENAME = "./filenames_all.csv" # "./filenames_grouped.csv"
+INPUT_PATH = "./results_16x16" # "./results_32x32" # "./results_24x24" # "./results_32x32_square" # "./results_24x24_square" 
+RESULTS_FILENAME = "./filenames_grouped.csv" # "./filenames_all.csv" # "./filenames_grouped.csv"
 
 # Areas for chip and all core types
 a_big = COREINFO["big"].width * COREINFO["big"].height
