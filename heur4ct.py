@@ -94,7 +94,7 @@ def get_polygon_coordinates(configuration, corewidth, coreheight):
 
 
 # Compute configuration for remaining core type which maximizes number of cores placed on chip
-# Polygons represent area alredy occupied by cores of different types
+# Polygons represent area already occupied by cores of different types
 # def fill_chip(polygons, coretype):
 #     corewidth = COREINFO[coretype].width
 #     coreheight = COREINFO[coretype].height
@@ -117,7 +117,7 @@ def get_polygon_coordinates(configuration, corewidth, coreheight):
 #         fillconfig.append(numcols)
 #     return fillconfig
 # Compute configuration for remaining core type which maximizes number of cores placed on chip
-# Polygons represent area alredy occupied by cores of different types
+# Polygons represent area already occupied by cores of different types
 # In constrast to other core types, a list of individual core positions is returned!
 def fill_chip(polygons, coretype):
     corewidth = COREINFO[coretype].width
